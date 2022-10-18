@@ -59,7 +59,12 @@ fn print_board(board: &Vec<char>) {
         if i % width == 0 {
             print!("\n{} ", i / width + 1);
         }
-        print!("{} ", board[i]);
+
+        let c = board[i];
+        match c {
+            '0' => { print!("  "); }
+            _ => { print!("{} ", c); }
+        }
     }
     println!();
 }
