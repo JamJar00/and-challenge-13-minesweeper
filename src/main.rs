@@ -3,8 +3,8 @@ mod solver;
 use rand::Rng;
 use std::io;
 
-const WIDTH: u16 = 3;
-const MINES: u8 = 1;
+const WIDTH: u16 = 5;
+const MINES: u8 = 5;
 
 fn main() {
     let mut board = generate_board(WIDTH, 0);
@@ -92,8 +92,40 @@ fn process_move(board: &mut Vec<char>, solution: &Vec<char>) -> Result<bool, Str
         Ok(true)
     } else {
         board[pos] = solution[pos];
+        if board[pos] == '0' {
+            expand_surrounding_0s(board, solution, pos);
+        }
         Ok(false)
     }
+}
+
+fn expand_surrounding_0s(board: &mut Vec<char>, solution: &Vec<char>, pos: usize) {
+    fn try_expand_tile(board: &mut Vec<char>, solution: &Vec<char>, pos: usize, offset_x: i8, offset_y: i8) {
+        let width = f64::sqrt(board.len() as f64) as usize;
+        let x = (pos % width) as isize + offset_x as isize;
+        let y = (pos / width) as isize + offset_y as isize;
+
+        // Check the x/y is in bounds of the board
+        if x < 0 || x as usize >= width || y < 0 || y as usize >= width {
+            return;
+        }
+
+        let new_pos = y as usize * width + x as usize;
+        if board[new_pos] == '-' && solution[pos] != 'X' {
+            board[new_pos] = solution[new_pos];
+            if solution[new_pos] == '0' {
+                expand_surrounding_0s(board, solution, new_pos);
+            }
+        }
+    }
+
+    try_expand_tile(board, solution, pos, 0, -1);
+    try_expand_tile(board, solution, pos, 1, -1);
+    try_expand_tile(board, solution, pos,  1, 0);
+    try_expand_tile(board, solution, pos, 1, 1);
+    try_expand_tile(board, solution, pos, 0, 1);
+    try_expand_tile(board, solution, pos, -1, 1);
+    try_expand_tile(board, solution, pos, -1, 0);
 }
 
 fn is_win(board: &Vec<char>, solution: &Vec<char>) -> bool {
